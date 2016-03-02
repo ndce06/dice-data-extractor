@@ -2,24 +2,50 @@
 <html>
 	<head>
 	    <title>Dice Data Extractor</title>
+	    <meta name="viewport" content="width=device-width, initial-scale=1">
 	    <script src="jquery-1.12.0.min.js"></script>
 	    <script src="popup.js"></script>
+	    <link rel="stylesheet" href="css/bootstrap.min.css">
 	    <style>
-			body {
-			    font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
-			    font-size: 100%;
-			}
-
 			#content {
-			    min-width: 400px;
+			    min-width: 500px;
 			    min-height: 200px;
 			}
 		</style>
+
 	</head>
 	<body id="content">
-	    <h5>Dice Data Extractor</h5>
-	    <button id="checkPage">Capture Data</button>
-
-	    <a id="aDownload" href="#">Download Excel</a>
+		<div class="container"><br/>
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">Dice Data Extractor</h3>
+				</div>
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-xs-12" id="info">
+							<ul class="infoList"></ul>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-12">
+							<button id="checkPage" type="button" class="btn btn-primary">
+								<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Capture Data
+							</button>	
+							<button id="aDownload" type="button" class="btn btn-success">
+								<span class="glyphicon glyphicon-download" aria-hidden="true"></span> Generate Excel
+							</button>
+							<button id="aClear" type="button" class="btn btn-danger">
+								<span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete
+							</button>
+						</div>
+					</div>
+					<div class="row"><br/>
+						<div class="col-xs-12" id="panelBody"></div>
+					</div>
+					
+				</div>
+			</div>
+		    
+		</div>
 	</body>
 </html>
