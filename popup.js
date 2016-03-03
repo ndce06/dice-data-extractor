@@ -76,19 +76,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         $cols = [];
 
                     //Job Title
-                    $cols.push($row.find('h3').text().trim().replace(/"/g, '""'));
+                    var job_link = $row.find('h3').find('a.dice-btn-link').attr('href');
+                    var job_title = '=HYPERLINK("'+ job_link +'", "' + $row.find('h3').text().trim() + '")';
+                    $cols.push(job_title.replace(/"/g, '""'));
                     //Location
                     $cols.push($row.find('li.location').text().trim().replace(/"/g, '""'));
                     //Posted Time
                     $cols.push($row.find('li.posted').text().trim().replace(/"/g, '""'));
                     //Company
-                    $cols.push($row.find('li.employer').find('span.hidden-xs').text().trim().replace(/"/g, '""'));
+                    var company_link = $row.find('li.employer').find('a.dice-btn-link').attr('href');
+                    var company = '=HYPERLINK("'+ company_link +'", "' + $row.find('li.employer').find('span.hidden-xs').text().trim() + '")';
+                    $cols.push(company.replace(/"/g, '""'));
                     //Description
                     $cols.push($row.find('.shortdesc').text().trim().replace(/"/g, '""'));
                     //Job link
-                    $cols.push($row.find('h3').find('a.dice-btn-link').attr('href').replace(/"/g, '""'));
+                    $cols.push(job_link.replace(/"/g, '""'));
                     //Company link
-                    $cols.push($row.find('li.employer').find('a.dice-btn-link').attr('href').replace(/"/g, '""'));
+                    $cols.push(company_link.replace(/"/g, '""'));
                     //JOB_TYPE
                     var JOB_TYPE = "";
                     if($row.hasClass('featured-job')) {
