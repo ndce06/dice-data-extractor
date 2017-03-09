@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     var job_title = '=HYPERLINK("'+ job_link +'", "' + $row.find('h3').text().trim() + '")';
                     $cols.push(job_title.replace(/"/g, '""'));
                     //Location
-                    $cols.push($row.find('li.location').text().trim().replace(/"/g, '""'));
+                    $cols.push($($row.find('li.location')[$row.find('li.location').length-1]).text().trim().replace(/"/g, '""'));
                     //Posted Time
                     $cols.push($row.find('li.posted').text().trim().replace(/"/g, '""'));
                     //Company
