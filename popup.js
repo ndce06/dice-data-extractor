@@ -303,8 +303,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     //Match job_title
                     var match = '';
                     var point = 0;
+
                     jQuery.each(matchList, function(index, value) {
-                        if(jobTitle.toLowerCase().indexOf(value.match.toLowerCase()) > -1) {
+                        var matchValue = value.match.toLowerCase().replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+                        var regex = '\\b';
+                        regex += matchValue;
+                        regex += '\\b';
+
+                        if(new RegExp(regex, "i").test(jobTitle.toLowerCase())) {
                             match += value.match + ', ';
                             point += parseInt(value.point, 10);
                         }
