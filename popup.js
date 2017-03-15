@@ -19,6 +19,13 @@ document.addEventListener('DOMContentLoaded', function() {
         {match: 'FI', point: 40}
     ];
 
+    var PRIORITY = {
+        PRIORITY_VERY_HIGH: 70,
+        PRIORITY_HIGH: 50,
+        PRIORITY_MEDIUM: 30,
+        PRIORITY_LOW: 0
+    }
+
     var info = function() {
         jQuery('#info').hide();
         jQuery('#aDownload').hide();
@@ -35,22 +42,97 @@ document.addEventListener('DOMContentLoaded', function() {
             jQuery('#aDownload').show();
             jQuery('#aClear').show();
         };
-
-        loadMatchList();        
     };
 
+    jQuery('#btnAddMatch').on('click', function(){
+        var txtMatch = jQuery('#txtAddMatch');
+        var txtPoint = jQuery('#txtAddPoint');
+
+        if(jQuery.trim(txtMatch.val()) === '') {
+            alert('Please enter match');
+            txtMatch.focus();
+            return false;
+        }
+        if(jQuery.trim(txtPoint.val()) === '' || isNaN(jQuery.trim(txtPoint.val()))) {
+            alert('Please enter numeric point value');
+            txtPoint.focus();
+            return false;
+        }
+
+        var matchList = JSON.parse(localStorage.getItem("matchList")) || MATCH_LIST;
+        matchList.push({ match: jQuery.trim(txtMatch.val()), point: parseInt(txtPoint.val(), 10) });
+        localStorage.setItem("matchList", JSON.stringify(matchList));
+
+        loadMatchList();
+        txtMatch.val('');
+        txtPoint.val('');
+    });
+
+    jQuery('.txtPriority').on('change', function() {
+        var txt = jQuery(this);
+        if(jQuery.trim(txt.val()) === "" || isNaN(txt.val())) {
+            return false;
+        }
+        PRIORITY[txt.attr('id')] = txt.val();
+    });
+
+    jQuery('.txtPriority').on('blur', function() {
+        var txt = jQuery(this);
+        if(jQuery.trim(txt.val()) === "" || isNaN(txt.val())) {
+            txt.val(PRIORITY[txt.attr('id')]);    
+        }
+    });
+
+    jQuery('#btnToggleMatchList').on('click', function() {
+        if(jQuery(this).find('i.glyphicon').hasClass('glyphicon-plus')) {
+            jQuery(this).find('i.glyphicon').removeClass('glyphicon-plus');
+            jQuery(this).find('i.glyphicon').addClass('glyphicon-minus')
+        } else {
+            jQuery(this).find('i.glyphicon').removeClass('glyphicon-minus');
+            jQuery(this).find('i.glyphicon').addClass('glyphicon-plus')
+        }
+        togglePanel('pnlMatchList');
+    });
+
+    jQuery('#btnTogglePriority').on('click', function() {
+        if(jQuery(this).find('i.glyphicon').hasClass('glyphicon-plus')) {
+            jQuery(this).find('i.glyphicon').removeClass('glyphicon-plus');
+            jQuery(this).find('i.glyphicon').addClass('glyphicon-minus')
+        } else {
+            jQuery(this).find('i.glyphicon').removeClass('glyphicon-minus');
+            jQuery(this).find('i.glyphicon').addClass('glyphicon-plus')
+        }
+        togglePanel('pnlPriority');
+    });
+
     info();
+    loadMatchList();
+    loadPriority();
+
+    function loadPriority() {
+        jQuery.each(PRIORITY, function(key, value) {
+            jQuery('#'+key).val(value);
+        });
+    }
 
     function loadMatchList() {
         var matchList = JSON.parse(localStorage.getItem("matchList")) || MATCH_LIST;
+
+        jQuery('.btnEdit').off();
+        jQuery('.btnDelete').off();
+        jQuery('.btnUpdate').off();
+        jQuery('.btnCancel').off();
+
         jQuery('#tblMatchList').find('tbody>tr').remove();
-        jQuery.each(matchList, function(key, value) {
-           var tdMatch = jQuery('<td>'+value.match+'</td>');
-           var tdPoint = jQuery('<td>'+value.point+'</td>');
+        jQuery.each(matchList, function(index, value) {
+           var tdMatch = jQuery('<td><span class="spMatch">'+value.match+'</span></td>');
+           tdMatch.append(jQuery('<input type="text" class="txtMatch" value="'+value.match+'" />').hide());
+           var tdPoint = jQuery('<td><span class="spPoint">'+value.point+'</span></td>');
+           tdPoint.append(jQuery('<input type="number" class="txtPoint" value="'+value.point+'" />').hide());
            var btnEdit = jQuery('<a class="btn btnEdit" title="Edit"><i class="glyphicon glyphicon-edit"></i></a>').on('click', editMatch(value));
-           var btnDelete = jQuery('<a class="btn btnDelete" title="Delete"><i class="glyphicon glyphicon-trash"></i></a>').on('click', deleteMatch(value));
-           var btnUpdate = jQuery('<a class="btn btnUpdate" title="Update"><i class="glyphicon glyphicon-ok"></i></a>').on('click', editMatch(value)).hide();
-           var btnCancel = jQuery('<a class="btn btnCancel" title="Cancel"><i class="glyphicon glyphicon-remove"></i></a>').on('click', deleteMatch(value)).hide();
+           var btnDelete = jQuery('<a class="btn btnDelete" title="Delete"><i class="glyphicon glyphicon-trash"></i></a>').on('click', deleteMatch(value, index));
+           var btnUpdate = jQuery('<a class="btn btnUpdate" title="Update"><i class="glyphicon glyphicon-ok"></i></a>').on('click', updateMatch(index)).hide();
+           var btnCancel = jQuery('<a class="btn btnCancel" title="Cancel"><i class="glyphicon glyphicon-remove"></i></a>').on('click', function() { resetAllMatch(); }).hide();
 
            var tdBtn = jQuery('<td></td>').append(btnEdit).append(btnDelete).append(btnUpdate).append(btnCancel);
 
@@ -62,23 +144,75 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function editMatch(value) {
         return function() {
-            var btnEdit = jQuery(this);
-            var tr = btnEdit.parents('tr');
-            jQuery(tr).find('td:eq(0)').html('<input type="text" value="'+value.match+'" />');
-            jQuery(tr).find('td:eq(1)').html('<input type="number" value="'+value.point+'" />');
+            //All other row - reset 
+            resetAllMatch();
 
-            btnEdit.hide();
-            btnEdit.parent().find('.btnDelete').hide();
-            btnEdit.parent().find('.btnUpdate').show();
-            btnEdit.parent().find('.btnCancel').show();
+            var btnEdit = jQuery(this).hide();
+            var tr = btnEdit.parents('tr');
+            jQuery(tr).find('.txtMatch').val(value.match).show();
+            jQuery(tr).find('.txtPoint').val(value.point).show();
+            jQuery(tr).find('.spMatch').hide();
+            jQuery(tr).find('.spPoint').hide();
+            jQuery(tr).find('.btnDelete').hide();
+            jQuery(tr).find('.btnUpdate').show();
+            jQuery(tr).find('.btnCancel').show();
 
         };
     }
 
-    function deleteMatch(value) {
+    function deleteMatch(value, index) {
         return function() {
-            console.log(value);
+            if(confirm('Are you sure to delete match: ' + value.match + '?')) {
+                var matchList = JSON.parse(localStorage.getItem("matchList")) || MATCH_LIST;
+                matchList.splice(index, 1);
+                localStorage.setItem("matchList", JSON.stringify(matchList));
+
+                // Reload Match list
+                loadMatchList();
+            }
         };
+    }
+
+    function updateMatch(index) {
+        return function() {
+            var btnUpdate = jQuery(this);
+            var tr = btnUpdate.parents('tr');
+            var txtMatch = jQuery(tr).find('.txtMatch');
+            var txtPoint = jQuery(tr).find('.txtPoint');
+
+            if(jQuery.trim(txtMatch.val()) === '') {
+                alert('Please enter match');
+                txtMatch.focus();
+                return false;
+            }
+            if(jQuery.trim(txtPoint.val()) === '' || isNaN(jQuery.trim(txtPoint.val()))) {
+                alert('Please enter numeric point value');
+                txtPoint.focus();
+                return false;
+            }
+
+            var matchList = JSON.parse(localStorage.getItem("matchList")) || MATCH_LIST;
+            matchList[index] = { match: jQuery.trim(txtMatch.val()), point: parseInt(txtPoint.val(), 10) };
+            localStorage.setItem("matchList", JSON.stringify(matchList));
+
+            // Reload Match list
+            loadMatchList();
+        }
+    }
+
+    function resetAllMatch() {
+        jQuery('.spMatch').show();
+        jQuery('.spPoint').show();
+        jQuery('.txtMatch').hide();
+        jQuery('.txtPoint').hide();
+        jQuery('.btnEdit').show();
+        jQuery('.btnDelete').show();
+        jQuery('.btnUpdate').hide();
+        jQuery('.btnCancel').hide();
+    }
+
+    function togglePanel(panelId) {
+        jQuery('#'+panelId).toggle();
     }
     
     var aClear = document.getElementById('aClear');
@@ -94,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(captureData) {
             var colDelim = '","',
                 rowDelim = '"\r\n"', 
-                csv = 'JOB TITLE","LOCATION","POSTED_TIME","COMPANY","DESCRIPTION","JOB_HTML_LINK","COMPANY_LINK","JOB_TYPE';
+                csv = 'JOB TITLE","LOCATION","POSTED_TIME","COMPANY","DESCRIPTION","JOB_HTML_LINK","COMPANY_LINK","JOB_TYPE","MATCH","POINT","PRIORITY';
 
             jQuery.each( captureData, function( key, value ) {
                 csv += value.csv;
@@ -132,13 +266,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     rowDelim = '"\r\n"', csv = '';
                     //csv = 'JOB TITLE","LOCATION","POSTED_TIME","COMPANY","DESCRIPTION","JOB_HTML_LINK","COMPANY_LINK","JOB_TYPE';
 
+                var matchList = JSON.parse(localStorage.getItem("matchList")) || MATCH_LIST;
+
                 $rows.each(function(i){
                     var $row = $(this),
                         $cols = [];
 
                     //Job Title
                     var job_link = $row.find('h3').find('a.dice-btn-link').attr('href');
-                    var job_title = '=HYPERLINK("'+ job_link +'", "' + $row.find('h3').text().trim() + '")';
+                    var jobTitle = $row.find('h3').find('a.dice-btn-link').attr('title');
+                    var job_title = '=HYPERLINK("'+ job_link +'", "' + jobTitle + '")';
                     $cols.push(job_title.replace(/"/g, '""'));
                     //Location
                     $cols.push($($row.find('li.location')[$row.find('li.location').length-1]).text().trim().replace(/"/g, '""'));
@@ -162,6 +299,33 @@ document.addEventListener('DOMContentLoaded', function() {
                         JOB_TYPE = "Highlight";
                     }
                     $cols.push(JOB_TYPE.replace(/"/g, '""'));
+
+                    //Match job_title
+                    var match = '';
+                    var point = 0;
+                    jQuery.each(matchList, function(index, value) {
+                        if(jobTitle.toLowerCase().indexOf(value.match.toLowerCase()) > -1) {
+                            match += value.match + ', ';
+                            point += parseInt(value.point, 10);
+                        }
+                    });
+                    $cols.push(match.replace(/"/g, '""'));
+                    $cols.push(point);
+
+                    //Priority
+                    var priority = ""
+                    if(point >= PRIORITY.PRIORITY_VERY_HIGH) {
+                        priority = "VERY HIGH";
+                    } else if(point >= PRIORITY.PRIORITY_HIGH) {
+                        priority = "HIGH";
+                    } else if(point >= PRIORITY.PRIORITY_MEDIUM) {
+                        priority = "MEDIUM";
+                    } else if(point >= PRIORITY.PRIORITY_LOW) {
+                        priority = "LOW";
+                    } else if(point < 0) {
+                        priority = "NEGATIVE";
+                    }
+                    $cols.push(priority);
 
                     csv += rowDelim + $cols.join(colDelim);
                 });
