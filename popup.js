@@ -1,5 +1,24 @@
 document.addEventListener('DOMContentLoaded', function() {
     
+    var MATCH_LIST = [
+        {match: 'FSCM', point: 100},
+        {match: 'AR', point: 100},
+        {match: 'RECEIVABLE', point: 100},
+        {match: 'CREDIT', point: 100},
+        {match: 'COLLECTION', point: 100},
+        {match: 'DISPUTE', point: 100},
+        {match: 'HIGH RADIUS', point: 100},
+        {match: 'ACCOUNT', point: 70},
+        {match: 'ACCOUNTS', point: 70},
+        {match: 'EBS', point: 50},
+        {match: 'HANSE ORGA', point: 50},
+        {match: 'BANK', point: 50},
+        {match: 'PAYABLE', point: 40},
+        {match: 'FINANCE', point: 40},
+        {match: 'FICO', point: 40},
+        {match: 'FI', point: 40}
+    ];
+
     var info = function() {
         jQuery('#info').hide();
         jQuery('#aDownload').hide();
@@ -15,10 +34,52 @@ document.addEventListener('DOMContentLoaded', function() {
             jQuery('#info').show();
             jQuery('#aDownload').show();
             jQuery('#aClear').show();
-        }
+        };
+
+        loadMatchList();        
     };
 
     info();
+
+    function loadMatchList() {
+        var matchList = JSON.parse(localStorage.getItem("matchList")) || MATCH_LIST;
+        jQuery('#tblMatchList').find('tbody>tr').remove();
+        jQuery.each(matchList, function(key, value) {
+           var tdMatch = jQuery('<td>'+value.match+'</td>');
+           var tdPoint = jQuery('<td>'+value.point+'</td>');
+           var btnEdit = jQuery('<a class="btn btnEdit" title="Edit"><i class="glyphicon glyphicon-edit"></i></a>').on('click', editMatch(value));
+           var btnDelete = jQuery('<a class="btn btnDelete" title="Delete"><i class="glyphicon glyphicon-trash"></i></a>').on('click', deleteMatch(value));
+           var btnUpdate = jQuery('<a class="btn btnUpdate" title="Update"><i class="glyphicon glyphicon-ok"></i></a>').on('click', editMatch(value)).hide();
+           var btnCancel = jQuery('<a class="btn btnCancel" title="Cancel"><i class="glyphicon glyphicon-remove"></i></a>').on('click', deleteMatch(value)).hide();
+
+           var tdBtn = jQuery('<td></td>').append(btnEdit).append(btnDelete).append(btnUpdate).append(btnCancel);
+
+           var tr = jQuery('<tr></tr>').append(tdMatch).append(tdPoint).append(tdBtn);
+           jQuery(jQuery('#tblMatchList').find('tbody')[0]).append(tr);
+
+        });
+    }
+
+    function editMatch(value) {
+        return function() {
+            var btnEdit = jQuery(this);
+            var tr = btnEdit.parents('tr');
+            jQuery(tr).find('td:eq(0)').html('<input type="text" value="'+value.match+'" />');
+            jQuery(tr).find('td:eq(1)').html('<input type="number" value="'+value.point+'" />');
+
+            btnEdit.hide();
+            btnEdit.parent().find('.btnDelete').hide();
+            btnEdit.parent().find('.btnUpdate').show();
+            btnEdit.parent().find('.btnCancel').show();
+
+        };
+    }
+
+    function deleteMatch(value) {
+        return function() {
+            console.log(value);
+        };
+    }
     
     var aClear = document.getElementById('aClear');
     aClear.addEventListener('click', function() {
@@ -80,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     var job_title = '=HYPERLINK("'+ job_link +'", "' + $row.find('h3').text().trim() + '")';
                     $cols.push(job_title.replace(/"/g, '""'));
                     //Location
-                    $cols.push($row.find('li.location').text().trim().replace(/"/g, '""'));
+                    $cols.push($($row.find('li.location')[$row.find('li.location').length-1]).text().trim().replace(/"/g, '""'));
                     //Posted Time
                     $cols.push($row.find('li.posted').text().trim().replace(/"/g, '""'));
                     //Company
